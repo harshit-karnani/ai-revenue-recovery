@@ -1,0 +1,35 @@
+{
+  "model_type": "LogisticRegression (sklearn Pipeline)",
+  "training_sample_count": 1129,
+  "validation_sample_count": 283,
+  "classes": [
+    "A",
+    "B"
+  ],
+  "validation_accuracy": 0.9752650176678446,
+  "validation_precision": 0.9523809523809523,
+  "validation_recall": 0.9803921568627451,
+  "validation_f1": 0.966183574879227,
+  "validation_escalated_percent": 8.8339222614841,
+  "training_congestion_window_distribution": {
+    "0": 1129
+  },
+  "training_timestamp": "2026-08-28T23:45:44.339848+01:00",
+  "random_seed": 42,
+  "confidence_threshold": 0.75,
+  "features": {
+    "numeric": [
+      "amount",
+      "hour_of_day",
+      "day_of_month",
+      "day_of_week",
+      "attempt_count",
+      "in_congestion_window"
+    ],
+    "categorical": [
+      "decline_code",
+      "payment_method",
+      "subscription_category"
+    ]
+  }
+}

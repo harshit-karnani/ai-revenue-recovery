@@ -1,0 +1,722 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RevGuard — Autonomous Recurring Payment Recovery</title>
+  <meta name="description" content="RevGuard: Regulatory-first AI engine for recurring payment recovery & smart dunning.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/style.css?v=2.4">
+</head>
+<body>
+  <div class="app-shell">
+
+    <!-- ═══════════════════════════════════════════════════════════ -->
+    <!-- 1. PRODUCT IDENTITY & STATUS                               -->
+    <!-- ═══════════════════════════════════════════════════════════ -->
+    <header class="top-header">
+      <div class="brand-container">
+        <div class="brand-badge">RevGuard</div>
+        <div class="brand-title-wrap">
+          <div class="title-row">
+            <h1>RevGuard</h1>
+            <span class="fintech-pill">Autonomous Recovery Console</span>
+          </div>
+          <p class="brand-sub">Regulatory-first recurring payment intelligence & smart dunning engine.</p>
+        </div>
+      </div>
+
+      <div class="status-bar" id="systemStatusBar">
+        <div class="status-chip chip-backend">
+          <span class="chip-dot" id="dotBackend"></span>
+          <span class="chip-label">Backend:</span>
+          <strong id="lblBackend">Online</strong>
+        </div>
+        <div class="status-chip chip-db">
+          <span class="chip-dot live" id="dotDb"></span>
+          <span class="chip-label">Database:</span>
+          <strong id="lblDb">PostgreSQL</strong>
+        </div>
+        <div class="status-chip chip-ml">
+          <span class="chip-dot ml" id="dotMl"></span>
+          <span class="chip-label">ML:</span>
+          <strong id="lblMl">LogisticRegression</strong>
+        </div>
+        <div class="status-chip chip-llm">
+          <span class="chip-dot llm" id="dotLlm"></span>
+          <span class="chip-label">LLM:</span>
+          <strong id="lblLlm">Gemini 2.5 Flash</strong>
+          <small id="lblLlmConfigured" style="display:none;"></small>
+        </div>
+      </div>
+    </header>
+ 
+    <!-- ═══════════════════════════════════════════════════════════ -->
+    <!-- 1.5 SIMULATED RECOVERY BATCH HEADLINE BANNER               -->
+    <!-- ═══════════════════════════════════════════════════════════ -->
+    <section class="batch-headline-panel" id="batchHeadlinePanel">
+      <div class="batch-headline-left">
+        <div class="batch-title-row">
+          <span class="batch-eyebrow">SIMULATED RECOVERY BATCH</span>
+          <span class="demo-data-badge">Demo Data</span>
+          <span class="batch-provider-pill" id="batchProviderPill">LLM Provider: Gemini · gemini-2.5-flash</span>
+        </div>
+        <div class="batch-headline-metric">
+          <span class="batch-metric-main" id="batchHeadlineNumbers">
+            <span class="risk-val" id="batchRiskDisplay">₹6,35,327.63</span> <span class="arr-icon">→</span> <span class="rec-val" id="batchRecDisplay">₹3,09,774.95</span> recovered
+          </span>
+        </div>
+        <div class="batch-sub-metrics">
+          <span class="sub-metric"><strong id="batchRateDisplay">48.8%</strong> recovered by amount</span>
+          <span class="sub-sep">•</span>
+          <span class="sub-metric"><strong id="batchCountDisplay">150 transactions (89 recovered)</strong></span>
+          <span class="sub-sep">•</span>
+          <span class="sub-chips">
+            <span class="sub-chip chip-a" id="batchChipA" title="Bucket A: Customer-side recovery">A: ₹2,25,885.04</span>
+            <span class="sub-chip chip-b" id="batchChipB" title="Bucket B: Bank & Network recovery">B: ₹83,889.91</span>
+            <span class="sub-chip chip-c" id="batchChipC" title="Bucket C: Regulatory guardrails">C: ₹0.00</span>
+            <span class="sub-chip chip-pf" id="batchChipPf" title="Terminal: Retry cap exceeded / Permanently failed">Terminal: ₹49,408.10</span>
+          </span>
+        </div>
+      </div>
+      <div class="batch-headline-right">
+        <button type="button" class="btn-run-batch-hero" id="btnRunBatchHero">
+          <span class="btn-text" id="btnRunBatchText">Run Recovery Batch</span>
+        </button>
+        <div class="batch-hero-status" id="batchHeroStatus" style="display:none;">
+          <span class="spinner-sm"></span> Simulating recovery batch...
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════════ -->
+    <!-- 2. MAIN WORKSPACE (LEFT: INPUT / RIGHT: RESULTS & TOOLS)   -->
+    <!-- ═══════════════════════════════════════════════════════════ -->
+    <main class="console-grid">
+
+      <!-- ╔═════════════════════════════════════════════════════════╗ -->
+      <!-- ║  LEFT COLUMN: Live Scenarios & Transaction Event        ║ -->
+      <!-- ╚═════════════════════════════════════════════════════════╝ -->
+      <section class="console-panel left-panel">
+
+        <!-- Scenarios Section -->
+        <div class="panel-head">
+          <div class="head-title">
+            <span class="section-num">1</span>
+            <h2>Scenarios</h2>
+          </div>
+          <span class="hint-pill">12 Verified Cases</span>
+        </div>
+
+        <div class="scenarios-container">
+          
+          <!-- Bucket A Group -->
+          <div class="sc-group">
+            <span class="sc-group-title text-emerald">Bucket A · Customer</span>
+            <div class="sc-buttons">
+              <button type="button" class="btn-scenario scenario-preset" data-scenario="bucket_a_funds" id="btnScenarioFunds">
+                <div class="sc-btn-row">
+                  <span class="sc-badge tag-a">A</span>
+                  <span class="sc-name">Insufficient Funds</span>
+                </div>
+              </button>
+              <button type="button" class="btn-scenario scenario-preset" data-scenario="bucket_a_expired" id="btnScenarioExpired">
+                <div class="sc-btn-row">
+                  <span class="sc-badge tag-a">A</span>
+                  <span class="sc-name">Expired Card</span>
+                </div>
+              </button>
+            </div>
+          </div>
+
+          <!-- Bucket B Group -->
+          <div class="sc-group">
+            <span class="sc-group-title text-amber">Bucket B · Bank &amp; AI</span>
+            <div class="sc-buttons">
+              <button type="button" class="btn-scenario scenario-preset" data-scenario="bucket_b_high_ml" id="btnScenarioHighMl">
+                <div class="sc-btn-row">
+                  <span class="sc-badge tag-b">B</span>
+                  <span class="sc-name">Generic Decline</span>
+                </div>
+              </button>
+
+              <!-- CRITICAL AMBIGUITY CARD -->
+              <button type="button" class="btn-scenario scenario-preset featured-llm-card" data-scenario="bucket_b_low_llm" id="btnScenarioLowLlm">
+                <div class="sc-btn-row">
+                  <span class="sc-badge tag-llm">LLM</span>
+                  <span class="sc-name text-amber-glow">Contextual Ambiguity</span>
+                </div>
+              </button>
+            </div>
+          </div>
+
+          <!-- Bucket C Group -->
+          <div class="sc-group">
+            <span class="sc-group-title text-coral">Bucket C · India Regulatory</span>
+            <div class="sc-buttons grid-2col">
+              <button type="button" class="btn-scenario scenario-preset" data-scenario="bucket_c_predebit" id="btnScenarioPredebit">
+                <div class="sc-btn-row">
+                  <span class="sc-badge tag-c">C</span>
+                  <span class="sc-name">Missed Pre-Debit</span>
+                </div>
+              </button>
+              <button type="button" class="btn-scenario scenario-preset" data-scenario="bucket_c_afa" id="btnScenarioAfa">
+                <div class="sc-btn-row">
+                  <span class="sc-badge tag-c">C</span>
+                  <span class="sc-name">AFA Exceeded</span>
+                </div>
+              </button>
+              <button type="button" class="btn-scenario scenario-preset" data-scenario="bucket_c_morning" id="btnScenarioMorning">
+                <div class="sc-btn-row">
+                  <span class="sc-badge tag-c">C</span>
+                  <span class="sc-name">Morning Window</span>
+                </div>
+              </button>
+              <button type="button" class="btn-scenario scenario-preset" data-scenario="bucket_c_evening" id="btnScenarioEvening">
+                <div class="sc-btn-row">
+                  <span class="sc-badge tag-c">C</span>
+                  <span class="sc-name">Evening Window</span>
+                </div>
+              </button>
+            </div>
+          </div>
+
+          <!-- Invariants Group -->
+          <div class="sc-group">
+            <span class="sc-group-title text-orange">Safety Invariants</span>
+            <div class="sc-buttons grid-2col">
+              <button type="button" class="btn-scenario scenario-preset" data-scenario="retry_cap" id="btnScenarioRetryCap">
+                <div class="sc-btn-row">
+                  <span class="sc-badge tag-inv">CAP</span>
+                  <span class="sc-name">Retry Cap</span>
+                </div>
+              </button>
+              <button type="button" class="btn-scenario scenario-preset" data-scenario="unseen_code" id="btnScenarioUnseenCode">
+                <div class="sc-btn-row">
+                  <span class="sc-badge tag-inv">ML</span>
+                  <span class="sc-name">Unseen Decline</span>
+                </div>
+              </button>
+              <button type="button" class="btn-scenario scenario-preset" data-scenario="llm_failure" id="btnScenarioLlmFailure">
+                <div class="sc-btn-row">
+                  <span class="sc-badge tag-trap">FAIL</span>
+                  <span class="sc-name">LLM Failure</span>
+                </div>
+              </button>
+              <button type="button" class="btn-scenario scenario-preset" data-scenario="llm_bucket_c" id="btnScenarioLlmBucketC">
+                <div class="sc-btn-row">
+                  <span class="sc-badge tag-trap">TRAP</span>
+                  <span class="sc-name">LLM → Bucket C</span>
+                </div>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel-divider"></div>
+
+        <!-- Transaction Event Builder -->
+        <div class="panel-head">
+          <div class="head-title">
+            <span class="section-num">2</span>
+            <h2>Transaction Event</h2>
+          </div>
+          <span class="hint-pill">Custom Event Config</span>
+        </div>
+
+        <!-- Hidden ID & DB compatibility elements -->
+        <input type="hidden" id="inpTxnId" value="txn_demo_init_001">
+        <button type="button" id="btnCreateTxn" style="display:none;"></button>
+        <span id="lblTxnStatus" style="display:none;"></span>
+
+        <!-- Event Form -->
+        <form id="eventForm" class="event-form" onsubmit="return false;">
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="inpAmount">Amount</label>
+              <input type="number" id="inpAmount" step="0.01" value="1200.00" required>
+            </div>
+            <div class="form-group">
+              <label for="inpPaymentType">Payment Method</label>
+              <select id="inpPaymentType">
+                <option value="card">Card</option>
+                <option value="upi_autopay">UPI AutoPay</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="inpDeclineCode">Decline Code</label>
+              <select id="inpDeclineCode">
+                <option value="insufficient_funds">Insufficient Funds</option>
+                <option value="expired_card">Expired Card</option>
+                <option value="generic_decline">Generic Decline</option>
+                <option value="do_not_honor">Do Not Honor</option>
+                <option value="bank_timeout">Bank Timeout</option>
+                <option value="call_bank">Call Bank</option>
+                <option value="invalid_card_number">Invalid Card Number</option>
+                <option value="mandate_inactive">Mandate Inactive</option>
+                <option value="zzz_not_real_999">Unseen Code (zzz_not_real_999)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="inpAttemptCount">Attempt Count</label>
+              <input type="number" id="inpAttemptCount" min="1" max="10" value="1" required>
+            </div>
+            <div class="form-group">
+              <label for="inpCategory">Category</label>
+              <select id="inpCategory">
+                <option value="ecommerce_subscription">E-commerce Subscription</option>
+                <option value="mutual_fund">Mutual Fund</option>
+                <option value="insurance_premium">Insurance Premium</option>
+                <option value="credit_card_bill">Credit Card Bill</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="inpMandateStatus">Mandate Status</label>
+              <select id="inpMandateStatus">
+                <option value="active">Active</option>
+                <option value="suspended">Suspended</option>
+                <option value="expired">Expired</option>
+                <option value="paused">Paused</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="inpCurrentTime">Execution Time</label>
+              <input type="datetime-local" id="inpCurrentTime" required>
+            </div>
+            <div class="form-group">
+              <label for="inpNotificationTime">Notification Sent</label>
+              <input type="datetime-local" id="inpNotificationTime" required>
+            </div>
+          </div>
+
+          <!-- Main Actions -->
+          <div class="pipeline-action-card">
+            <!-- Primary Action -->
+            <button type="button" class="btn-run-full" id="btnRunEndToEnd">
+              <span class="btn-run-icon">▶</span>
+              <span class="btn-run-title">RUN PIPELINE</span>
+            </button>
+
+            <!-- Secondary Stepper -->
+            <div class="two-phase-stepper-box">
+              <button type="button" class="btn-step-action btn-step-eval" id="btnEvaluate">
+                <span class="step-num-pill">1</span>
+                <span class="step-title">Evaluate</span>
+              </button>
+              <div class="stepper-arrow">➔</div>
+              <button type="button" class="btn-step-action btn-step-exec" id="btnExecute" disabled>
+                <span class="step-num-pill">2</span>
+                <span class="step-title">Execute</span>
+              </button>
+            </div>
+          </div>
+        </form>
+
+      </section>
+
+      <!-- ╔═════════════════════════════════════════════════════════╗ -->
+      <!-- ║  RIGHT COLUMN: Pipeline Results & Advanced Testing      ║ -->
+      <!-- ╚═════════════════════════════════════════════════════════╝ -->
+      <section class="console-panel right-panel">
+
+        <!-- Console Tabs Navigation -->
+        <div class="console-tabs" role="tablist">
+          <button type="button" class="tab-btn active" data-tab="pipeline" role="tab">Pipeline Trace</button>
+          <button type="button" class="tab-btn" data-tab="custom" role="tab">Custom</button>
+          <button type="button" class="tab-btn" data-tab="boundary" role="tab">Boundaries</button>
+          <button type="button" class="tab-btn" data-tab="probe" role="tab">ML Probe</button>
+          <button type="button" class="tab-btn" data-tab="batch" role="tab">Batch</button>
+          <button type="button" class="tab-btn" data-tab="adversarial" role="tab">Break-It</button>
+        </div>
+
+        <!-- ═══════════════ TAB 1: PIPELINE TRACE ═══════════════ -->
+        <div class="tab-pane active" id="tab-pipeline">
+          <div class="pane-head">
+            <h3>Decision Pipeline</h3>
+            <span class="trace-badge awaiting" id="traceStatusBadge">Awaiting Request</span>
+          </div>
+
+          <!-- 7-Stage Pipeline Visual Flow -->
+          <div class="pipeline-flow" id="pipelineTrace">
+            
+            <div class="flow-stage" id="stageRegulatory">
+              <div class="stage-left">
+                <span class="stage-code">1</span>
+                <span class="stage-name">Regulatory</span>
+              </div>
+              <div class="stage-pill pending" id="statusRegulatory">PENDING</div>
+            </div>
+
+            <div class="flow-stage" id="stageRules">
+              <div class="stage-left">
+                <span class="stage-code">2</span>
+                <span class="stage-name">Rules Taxonomy</span>
+              </div>
+              <div class="stage-pill pending" id="statusRules">PENDING</div>
+            </div>
+
+            <div class="flow-stage" id="stageMl">
+              <div class="stage-left">
+                <span class="stage-code">3</span>
+                <span class="stage-name">ML Classifier</span>
+              </div>
+              <div class="stage-pill skipped" id="statusMl">SKIPPED</div>
+            </div>
+
+            <div class="flow-stage" id="stageLlm">
+              <div class="stage-left">
+                <span class="stage-code">4</span>
+                <span class="stage-name">LLM Reasoning (<span id="traceLlmProvider">Gemini</span>)</span>
+              </div>
+              <div class="stage-pill skipped" id="statusLlm">SKIPPED</div>
+            </div>
+
+            <div class="flow-stage" id="stageStrategy">
+              <div class="stage-left">
+                <span class="stage-code">5</span>
+                <span class="stage-name">Strategy Router</span>
+              </div>
+              <div class="stage-pill pending" id="statusStrategy">PENDING</div>
+            </div>
+
+            <div class="flow-stage" id="stageSafety">
+              <div class="stage-left">
+                <span class="stage-code">6</span>
+                <span class="stage-name">Safety Firewall</span>
+              </div>
+              <div class="stage-pill pending" id="statusSafety">PENDING</div>
+            </div>
+
+            <div class="flow-stage" id="stageGateway">
+              <div class="stage-left">
+                <span class="stage-code">7</span>
+                <span class="stage-name">Gateway Execution</span>
+              </div>
+              <div class="stage-pill pending" id="statusGateway">PENDING</div>
+            </div>
+
+          </div>
+
+          <!-- Decision Summary Card -->
+          <div class="summary-card" id="telemetryCard">
+            <div class="card-head">
+              <h4>Decision Summary</h4>
+              <span class="decision-code" id="lblDecisionId">No Decision ID</span>
+            </div>
+
+            <!-- Compact Scannable Grid -->
+            <div class="decision-summary-grid">
+              <div class="summary-metric">
+                <span class="sm-label">BUCKET</span>
+                <strong class="sm-val" id="resBucket">—</strong>
+              </div>
+              <div class="summary-metric">
+                <span class="sm-label">CLASSIFIED BY</span>
+                <strong class="sm-val" id="resClassifiedBy">—</strong>
+              </div>
+              <div class="summary-metric">
+                <span class="sm-label">ML CONFIDENCE</span>
+                <strong class="sm-val" id="resMLConfidence">—</strong>
+              </div>
+              <div class="summary-metric">
+                <span class="sm-label">THRESHOLD</span>
+                <strong class="sm-val" id="resMLDecision">75%</strong>
+              </div>
+              <div class="summary-metric">
+                <span class="sm-label">LLM</span>
+                <strong class="sm-val" id="resLlmProvider">—</strong>
+                <span id="resLlmModel" style="display:none;"></span>
+                <span id="resLLMStatus" style="display:none;"></span>
+                <span id="resConfidence" style="display:none;"></span>
+              </div>
+              <div class="summary-metric">
+                <span class="sm-label">STRATEGY</span>
+                <strong class="sm-val" id="resStrategy">—</strong>
+              </div>
+              <div class="summary-metric">
+                <span class="sm-label">SAFETY</span>
+                <strong class="sm-val text-emerald" id="resNextAction">—</strong>
+              </div>
+              <div class="summary-metric">
+                <span class="sm-label">EXECUTION</span>
+                <strong class="sm-val" id="resExecResult">—</strong>
+              </div>
+            </div>
+
+            <!-- Visual ML -> LLM Escalation Diagram (Shown on ambiguity) -->
+            <div id="mlLlmAlert" class="escalation-diagram" style="display:none;">
+              <!-- Populated by JS -->
+            </div>
+
+            <!-- Collapsible LLM Reasoning -->
+            <details class="reasoning-details" id="boxReasoning" style="display:none;">
+              <summary class="reason-summary">View LLM Reasoning</summary>
+              <p id="txtReasoning" class="reason-body"></p>
+            </details>
+          </div>
+
+          <!-- Raw API Evidence Accordion -->
+          <div class="raw-evidence-box">
+            <div class="evidence-header" id="btnToggleJson">
+              <span>🔍 Raw API Evidence</span>
+              <span class="toggle-arrow">▼</span>
+            </div>
+            <div class="evidence-body" id="jsonBody" style="display:none;">
+              <div class="json-block">
+                <div class="json-top">
+                  <h5>POST /api/v1/recovery/evaluate</h5>
+                  <button type="button" class="btn-copy" onclick="copyToClipboard('jsonEval', this)">Copy</button>
+                </div>
+                <pre id="jsonEval">/* Awaiting evaluate call */</pre>
+              </div>
+              <div class="json-block">
+                <div class="json-top">
+                  <h5>POST /api/v1/recovery/execute</h5>
+                  <button type="button" class="btn-copy" onclick="copyToClipboard('jsonExec', this)">Copy</button>
+                </div>
+                <pre id="jsonExec">/* Awaiting execute call */</pre>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- ═══════════════ TAB 2: CUSTOM PAYLOAD TESTER ═══════════════ -->
+        <div class="tab-pane" id="tab-custom">
+          <div class="pane-head">
+            <h3>Custom Payload</h3>
+            <span class="hint-pill">JSON Request</span>
+          </div>
+
+          <div class="custom-box">
+            <div class="custom-toolbar">
+              <button type="button" class="btn-subtle" id="btnLoadExample">Load Example</button>
+              <button type="button" class="btn-subtle" id="btnValidateJson">Validate</button>
+              <button type="button" class="btn-subtle" id="btnClearCustom">Clear</button>
+            </div>
+            
+            <textarea id="customJsonEditor" class="code-editor" rows="12" spellcheck="false">{
+  "transaction_id": "txn_custom_001",
+  "event": {
+    "amount": 1200.00,
+    "currency": "INR",
+    "payment_type": "card",
+    "subscription_category": "ecommerce_subscription",
+    "decline_code": "insufficient_funds",
+    "attempt_count": 1,
+    "mandate_status": "active",
+    "authentication_status": "not_authenticated",
+    "notification_sent_at": "2026-08-30T13:00:00+05:30",
+    "scheduled_at": "2026-08-31T14:00:00+05:30",
+    "current_time": "2026-08-31T14:00:00+05:30"
+  }
+}</textarea>
+            <div id="customJsonStatus" class="json-status" style="display:none;"></div>
+
+            <button type="button" class="btn-primary" id="btnCustomEvaluate">⚡ Evaluate</button>
+
+            <div class="custom-results" id="customResults" style="display:none;">
+              <div class="res-meta">
+                <span id="customHttpStatus" class="http-badge">HTTP 200</span>
+                <span id="customLatency" class="latency-badge">42ms</span>
+              </div>
+              <pre id="customResponseJson"></pre>
+            </div>
+          </div>
+        </div>
+
+        <!-- ═══════════════ TAB 3: BOUNDARY TESTS ═══════════════ -->
+        <div class="tab-pane" id="tab-boundary">
+          <div class="pane-head">
+            <h3>Boundaries</h3>
+            <span class="hint-pill">Automated Boundary Sweeps</span>
+          </div>
+
+          <div class="boundary-bar">
+            <button type="button" class="btn-primary" id="btnRunBoundary">▶ Run Boundary Sweep</button>
+            <span id="boundaryProgress" class="latency-badge" style="display:none;">Running…</span>
+          </div>
+
+          <div class="table-scroll">
+            <table class="data-table" id="boundaryTable">
+              <thead>
+                <tr>
+                  <th>Test Group</th>
+                  <th>Input</th>
+                  <th>Expected</th>
+                  <th>Actual Bucket</th>
+                  <th>HTTP</th>
+                  <th>Regulatory Block</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="boundaryTbody">
+                <tr><td colspan="7" class="empty-row">Click "Run Boundary Sweep" to begin</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- ═══════════════ TAB 4: ML CONFIDENCE PROBE ═══════════════ -->
+        <div class="tab-pane" id="tab-probe">
+          <div class="pane-head">
+            <h3>ML Probe</h3>
+            <span class="hint-pill">Confidence Exploration</span>
+          </div>
+
+          <div class="probe-form">
+            <div class="form-grid">
+              <div class="form-group">
+                <label for="probeAmount">Amount (₹)</label>
+                <input type="number" id="probeAmount" value="1500" step="100">
+              </div>
+              <div class="form-group">
+                <label for="probeAttemptCount">Attempt Count</label>
+                <input type="number" id="probeAttemptCount" value="2" min="1" max="5">
+              </div>
+              <div class="form-group">
+                <label for="probeDeclineCode">Decline Code</label>
+                <input type="text" id="probeDeclineCode" value="generic_decline">
+              </div>
+              <div class="form-group">
+                <label for="probeCategory">Category</label>
+                <select id="probeCategory">
+                  <option value="other" selected>other</option>
+                  <option value="ecommerce_subscription">ecommerce_subscription</option>
+                  <option value="mutual_fund">mutual_fund</option>
+                  <option value="insurance_premium">insurance_premium</option>
+                  <option value="credit_card_bill">credit_card_bill</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="probePaymentType">Payment Type</label>
+                <select id="probePaymentType">
+                  <option value="card">card</option>
+                  <option value="upi_autopay">upi_autopay</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="probeHour">Hour (IST 0–23)</label>
+                <input type="number" id="probeHour" value="14" min="0" max="23">
+              </div>
+            </div>
+
+            <button type="button" class="btn-primary" id="btnRunProbe">🔬 Run ML Probe</button>
+
+            <div id="probeResult" class="probe-card" style="display:none;">
+              <div class="probe-verdict" id="probeVerdict"></div>
+              
+              <div class="meter-box">
+                <div class="meter-top">
+                  <span>ML Confidence</span>
+                  <strong id="probeConfValue">—</strong>
+                </div>
+                <div class="meter-track">
+                  <div class="meter-fill" id="probeBarFill"></div>
+                  <div class="meter-threshold-line" title="0.75 Threshold"></div>
+                </div>
+                <div class="meter-labels">
+                  <span>0%</span>
+                  <span class="thresh-text">Threshold: 75%</span>
+                  <span>100%</span>
+                </div>
+              </div>
+
+              <div class="metrics-grid">
+                <div class="metric-item"><span class="m-label">Bucket</span><strong class="m-val" id="probeBucket">—</strong></div>
+                <div class="metric-item"><span class="m-label">Classified By</span><strong class="m-val" id="probeClassifiedBy">—</strong></div>
+                <div class="metric-item"><span class="m-label">Requires LLM</span><strong class="m-val" id="probeRequiresLlm">—</strong></div>
+                <div class="metric-item"><span class="m-label">Strategy</span><strong class="m-val" id="probeStrategy">—</strong></div>
+              </div>
+
+              <pre id="probeRawJson" class="probe-json"></pre>
+            </div>
+          </div>
+        </div>
+
+        <!-- ═══════════════ TAB 5: BATCH VERIFICATION ═══════════════ -->
+        <div class="tab-pane" id="tab-batch">
+          <div class="pane-head">
+            <h3>Batch</h3>
+            <span class="hint-pill">Batch Verification</span>
+          </div>
+
+          <div class="batch-bar">
+            <span class="bar-lbl">Batch Size:</span>
+            <div class="n-selector">
+              <button type="button" class="btn-n active" data-n="10">10</button>
+              <button type="button" class="btn-n" data-n="25">25</button>
+              <button type="button" class="btn-n" data-n="50">50</button>
+              <button type="button" class="btn-n" data-n="100">100</button>
+            </div>
+            <button type="button" class="btn-primary" id="btnRunBatch">▶ Run Batch</button>
+            <span id="batchProgress" class="latency-badge" style="display:none;">Processing…</span>
+          </div>
+
+          <div id="batchStats" class="batch-stats-box" style="display:none;">
+            <div class="stats-grid">
+              <div class="stat-card"><span class="stat-val" id="bsTotal">—</span><span class="stat-lbl">Total Events</span></div>
+              <div class="stat-card card-a"><span class="stat-val" id="bsBucketA">—</span><span class="stat-lbl">Bucket A</span></div>
+              <div class="stat-card card-b"><span class="stat-val" id="bsBucketB">—</span><span class="stat-lbl">Bucket B</span></div>
+              <div class="stat-card card-c"><span class="stat-val" id="bsBucketC">—</span><span class="stat-lbl">Bucket C</span></div>
+              <div class="stat-card"><span class="stat-val" id="bsRules">—</span><span class="stat-lbl">By Rules</span></div>
+              <div class="stat-card"><span class="stat-val" id="bsMl">—</span><span class="stat-lbl">By ML</span></div>
+              <div class="stat-card"><span class="stat-val" id="bsLlm">—</span><span class="stat-lbl">By LLM</span></div>
+              <div class="stat-card card-warn"><span class="stat-val" id="bsEscalations">—</span><span class="stat-lbl">Escalated</span></div>
+              <div class="stat-card card-danger"><span class="stat-val" id="bsBlocked">—</span><span class="stat-lbl">Blocked</span></div>
+              <div class="stat-card card-success"><span class="stat-val" id="bsExecuted">—</span><span class="stat-lbl">Executed</span></div>
+              <div class="stat-card card-danger"><span class="stat-val" id="bsErrors">—</span><span class="stat-lbl">Errors</span></div>
+              <div class="stat-card card-warn"><span class="stat-val" id="bsUnexpected">—</span><span class="stat-lbl">Unexpected</span></div>
+            </div>
+          </div>
+
+          <div id="batchResultsWrap" class="table-scroll" style="display:none; margin-top:16px;">
+            <table class="data-table" id="batchResultsTable">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Bucket</th>
+                  <th>Expected</th>
+                  <th>Classified By</th>
+                  <th>ML Conf</th>
+                  <th>Strategy</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="batchResultsTbody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- ═══════════════ TAB 6: BREAK-THE-SYSTEM ═══════════════ -->
+        <div class="tab-pane" id="tab-adversarial">
+          <div class="pane-head">
+            <h3>Break-It</h3>
+            <span class="hint-pill">Adversarial Testing</span>
+          </div>
+
+          <div class="adv-grid" id="adversarialGrid">
+            <!-- Buttons dynamically populated by JS -->
+          </div>
+
+          <div id="adversarialResult" class="adv-result-card" style="display:none;">
+            <div class="adv-top">
+              <span id="advTestName" class="adv-name"></span>
+              <span id="advHttpStatus" class="http-badge">HTTP 400</span>
+              <span id="advLatency" class="latency-badge">12ms</span>
+            </div>
+            <pre id="advResponseJson"></pre>
+          </div>
+        </div>
+
+      </section>
+    </main>
+
+  </div>
+
+  <script src="/static/app.js?v=2.6"></script>
+</body>
+</html>
