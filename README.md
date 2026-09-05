@@ -331,16 +331,65 @@ ai-revenue-recovery/
 
 ## 11. Setup & Running Locally
 
-### Prerequisites
+### Quick Start (Recommended for Evaluators)
 
-- Python 3.11+
-- PostgreSQL (or a [Supabase](https://supabase.com) free-tier project)
-- A [Google AI Studio](https://aistudio.google.com) API key (free) for live Gemini inference
-
-### 1. Clone & Install
+The fastest path — no PostgreSQL required. Uses SQLite with `LLM_PROVIDER=mock` (no API keys needed):
 
 ```bash
-git clone <your-repo-url>
+# 1. Clone the repository
+git clone https://github.com/harshit-karnani/ai-revenue-recovery.git
+cd ai-revenue-recovery
+
+# 2. Create and activate virtual environment
+python -m venv venv
+# Windows:
+venv\Scripts\activate
+# macOS/Linux:
+source venv/bin/activate
+
+# 3. Install dependencies
+pip install -r requirements.txt
+
+# 4. Create environment file
+cp .env.example .env
+```
+
+Edit `.env` and set these two lines (everything else can stay as-is):
+
+```dotenv
+DATABASE_URL=sqlite:///./revguard.db
+LLM_PROVIDER=mock
+```
+
+```bash
+# 5. Run database migrations
+alembic upgrade head
+
+# 6. Seed demo data
+python scripts/seed_database.py
+
+# 7. Start the server
+uvicorn app.main:app --host 127.0.0.1 --port 8000 --reload
+```
+
+Open **[http://localhost:8000/](http://localhost:8000/)** — the demo dashboard loads immediately. Click **"Run Recovery Batch"** to simulate 150 transactions.
+
+---
+
+### Full Setup (with PostgreSQL + Live Gemini)
+
+For live LLM inference and production-grade database:
+
+#### Prerequisites
+
+- Python 3.11+
+- PostgreSQL 14+ (or a [Supabase](https://supabase.com) free-tier project)
+- A [Google AI Studio](https://aistudio.google.com) API key (free tier is sufficient)
+
+#### Clone & Install
+
+```bash
+git clone https://github.com/harshit-karnani/ai-revenue-recovery.git
 cd ai-revenue-recovery
 
 python -m venv venv
@@ -352,15 +401,17 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-### 2. Configure Environment
+#### Configure Environment
 
 ```bash
 cp .env.example .env
 ```
 
+Edit `.env`:
+
 ```dotenv
 # PostgreSQL connection string
-DATABASE_URL=postgresql://user:password@host:5432/dbname
+DATABASE_URL=postgresql://user:password@localhost:5432/revguard
 
 # LLM Configuration
 # Options: "mock" (no API key needed) | "gemini" | "anthropic"
@@ -373,18 +424,11 @@ ML_CONFIDENCE_THRESHOLD=0.75
 ENVIRONMENT=development
 ```
 
-> **Tip:** set `LLM_PROVIDER=mock` to run the entire system with zero external API calls — ideal for demos and testing.
-
-### 3. Run Database Migrations
+#### Run Migrations & Start
 
 ```bash
 alembic upgrade head
 python scripts/seed_database.py
-```
-
-### 4. Start the Server
-
-```bash
 uvicorn app.main:app --host 127.0.0.1 --port 8000 --reload
 ```
 
@@ -393,6 +437,7 @@ uvicorn app.main:app --host 127.0.0.1 --port 8000 --reload
 | Demo Dashboard | [http://localhost:8000/](http://localhost:8000/) |
 | Swagger API Docs | [http://localhost:8000/docs](http://localhost:8000/docs) |
 | Health Check | [http://localhost:8000/api/v1/health](http://localhost:8000/api/v1/health) |
+| System Status | [http://localhost:8000/api/v1/system-status](http://localhost:8000/api/v1/system-status) |
 
 ---
 
